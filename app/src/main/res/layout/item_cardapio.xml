@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_layout_contornado">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/view_img"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <TextView
+        android:id="@+id/view_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="Nome do produto "
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/view_img"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/view_describe"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Descrição do produto "
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/view_name"
+        app:layout_constraintStart_toEndOf="@+id/view_img"
+        app:layout_constraintTop_toBottomOf="@+id/view_name" />
+
+    <TextView
+        android:id="@+id/view_rs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Preço: R$"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/view_describe"
+        app:layout_constraintTop_toBottomOf="@+id/view_describe" />
+
+    <TextView
+        android:id="@+id/view_price"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="2dp"
+        android:text="50"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/view_rs"
+        app:layout_constraintEnd_toEndOf="@+id/view_describe"
+        app:layout_constraintStart_toEndOf="@+id/view_rs"
+        app:layout_constraintTop_toTopOf="@+id/view_rs" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/teal_700"
+    tools:context=".registro">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/img_foto"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <Button
+        android:id="@+id/btn_add_foto"
+        android:layout_width="104dp"
+        android:layout_height="107dp"
+        android:background="@drawable/bg_img_rounded"
+        android:onClick="onClickBtnAddFoto"
+        android:text="Foto"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/img_foto"
+        app:layout_constraintEnd_toEndOf="@+id/img_foto"
+        app:layout_constraintStart_toStartOf="@+id/img_foto"
+        app:layout_constraintTop_toTopOf="@+id/img_foto" />
+
+
+    <EditText
+        android:id="@+id/edt_name"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_edt_text_rounded"
+        android:ems="10"
+        android:hint="Nome Completo"
+        android:inputType="textPersonName"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/img_foto" />
+
+    <EditText
+        android:id="@+id/edt_address"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_edt_text_rounded"
+        android:ems="10"
+        android:hint="Endereço"
+        android:inputType="textPersonName"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/edt_name"
+        app:layout_constraintStart_toStartOf="@+id/edt_name"
+        app:layout_constraintTop_toBottomOf="@+id/edt_name" />
+
+    <EditText
+        android:id="@+id/edt_reg_email"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_edt_text_rounded"
+        android:ems="10"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/edt_address"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/edt_address"
+        app:layout_constraintTop_toBottomOf="@+id/edt_ref" />
+
+    <EditText
+        android:id="@+id/edt_reg_password"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_edt_text_rounded"
+        android:ems="10"
+        android:hint="Senha"
+        android:inputType="textPassword"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/edt_reg_email"
+        app:layout_constraintStart_toStartOf="@+id/edt_reg_email"
+        app:layout_constraintTop_toBottomOf="@+id/edt_reg_email" />
+
+    <Button
+        android:id="@+id/btn_register"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_edt_text_rounded"
+        android:backgroundTint="@color/green"
+        android:onClick="onClickBtnRegister"
+        android:text="Cadastrar"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="@+id/edt_reg_password"
+        app:layout_constraintStart_toStartOf="@+id/edt_reg_password"
+        app:layout_constraintTop_toBottomOf="@+id/edt_reg_password" />
+
+    <EditText
+        android:id="@+id/edt_ref"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_edt_text_rounded"
+        android:ems="10"
+        android:hint="Referência"
+        android:inputType="textPersonName"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edt_address" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

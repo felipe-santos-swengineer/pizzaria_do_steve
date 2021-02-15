@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="br.com.ufc.pizzaria_do_steve">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="A Pizzaria do Steve"
+        android:roundIcon="@mipmap/ic_pizzaria_steve_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Pizzaria_do_steve">
+        <activity
+            android:name=".conta_pedidos"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".sobre"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".conta"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".carrinho"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".main_menu"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".registro"
+            android:screenOrientation="portrait">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".login" />
+        </activity>
+        <activity
+            android:name=".login"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".apresentacao"
+            android:theme="@style/Theme.Pizzaria_do_steve.NoActionBar"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

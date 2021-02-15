@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1072203651397",
+    "project_id": "pizzaria-steve",
+    "storage_bucket": "pizzaria-steve.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1072203651397:android:25ebb167cbf758ad3fc62c",
+        "android_client_info": {
+          "package_name": "br.com.ufc.pizzaria_do_steve"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1072203651397-8891c28moaoeu70k34o42c94kiuid28u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPsCMRd9jePWjFgu7DYw48RQli99m7SjM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1072203651397-8891c28moaoeu70k34o42c94kiuid28u.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
