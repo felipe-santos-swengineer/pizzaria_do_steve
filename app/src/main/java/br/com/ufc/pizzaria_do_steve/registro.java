@@ -1,21 +1,26 @@
 package br.com.ufc.pizzaria_do_steve;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.provider.MediaStore;
+import android.text.Html;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -45,18 +50,7 @@ public class registro extends AppCompatActivity {
     String error_msg;
     Uri uri_foto;
     private long mLastClickTime = 0;
-
-
-    @Override
-    public void onBackPressed() {
-        //retornar ao menu limpando a pilha de intents
-        Intent intent;
-        intent = new Intent(this, login.class);
-        intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        overridePendingTransition(0,0);
-        super.onBackPressed();
-    }
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +70,22 @@ public class registro extends AppCompatActivity {
 
     }
 
+    public void onClickImgMaps(View v){
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+            return;
+        }
+        mLastClickTime = SystemClock.elapsedRealtime();
+        Intent intent;
+        intent = new Intent(this, Get_addressActivity.class);
+        //intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivityForResult(intent,1);
+    }
+
     public void onClickBtnAddFoto(View v){
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+            return;
+        }
+        mLastClickTime = SystemClock.elapsedRealtime();
 
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
@@ -101,6 +110,9 @@ public class registro extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        if(requestCode == 1 && resultCode == RESULT_OK ){
+            edt_address.setText(data.getStringExtra("endereco"));
+        }
     }
 
 
@@ -110,6 +122,7 @@ public class registro extends AppCompatActivity {
             return;
         }
         mLastClickTime = SystemClock.elapsedRealtime();
+        Toast.makeText(this, "Validando, aguarde um instante", Toast.LENGTH_SHORT).show();
 
         String name = edt_name.getText().toString();
         String address = edt_address.getText().toString();
@@ -124,7 +137,7 @@ public class registro extends AppCompatActivity {
         }
 
         if (has_photo == false) {
-            Toast.makeText(this, "Insira uma foto", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Falta foto", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -132,9 +145,18 @@ public class registro extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
                     @Override
                     public void onSuccess(AuthResult authResult) {
-                        error_msg = "Validando, aguarde um instante";
-                        iniciar_act_messagens(false);
-                        saveUserInFirebase();
+                        //iniciar_act_messagens(false);
+                        String id = FirebaseAuth.getInstance().getUid();
+                        String nome = edt_name.getText().toString();
+                        String fotoUrl = "";
+                        String endereco = edt_address.getText().toString();
+                        String ref = edt_ref.getText().toString();
+                        String email = edt_reg_email.getText().toString();
+                        String senha = edt_reg_password.getText().toString();
+
+
+                        User user = new User(id, nome, fotoUrl, endereco,ref, email, senha);
+                        new SaveUserInFirebase().execute(user);
                     }
                 })
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
@@ -156,55 +178,97 @@ public class registro extends AppCompatActivity {
                 });
     }
 
-    public void saveUserInFirebase(){
-        String filename = UUID.randomUUID().toString();
-        final StorageReference ref = FirebaseStorage.getInstance().getReference("/user_img/" + filename);
-        ref.putFile(uri_foto)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                //Criação do usuário no firebase
-                                String id = FirebaseAuth.getInstance().getUid();
-                                String nome = edt_name.getText().toString();
-                                String fotoUrl = uri.toString();
-                                String endereco = edt_address.getText().toString();
-                                String ref = edt_ref.getText().toString();
-                                String email = edt_reg_email.getText().toString();
-                                String senha = edt_reg_password.getText().toString();
+    public class SaveUserInFirebase extends AsyncTask<User, String, String>{
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = progressDialog.show(registro.this, "Aguarde",
+                    "Cadastrando...", true, false);
+        }
 
-                                User user = new User(id, nome, fotoUrl, endereco,ref, email, senha);
-                                FirebaseFirestore.getInstance().collection("users")
-                                        .document(id)
-                                        .set(user)
-                                        .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                            @Override
-                                            public void onSuccess(Void aVoid) {
-                                                iniciar_act_messagens(true);
-                                            }
-                                        })
-                                        .addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                error_msg = e.getMessage();
-                                                iniciar_act_messagens(false);
-                                            }
-                                        });
+        @Override
+        protected String doInBackground(User... users) {
+            String filename = UUID.randomUUID().toString();
+            final StorageReference ref = FirebaseStorage.getInstance().getReference("/user_img/" + filename);
+            ref.putFile(uri_foto)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            ref.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    //Criação do usuário no firebase
+                                    users[0].setFotoUrl(uri.toString());
 
-                            }
-                        });
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        error_msg = e.getMessage();
-                        iniciar_act_messagens(false);
-                    }
-                });
+                                    FirebaseFirestore.getInstance().collection("users")
+                                            .document(users[0].getId())
+                                            .set(users[0])
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    progressDialog.dismiss();
+                                                    AlertDialog.Builder builder = new AlertDialog.Builder(registro.this);
+                                                    builder.setCancelable(false);
+                                                    builder.setTitle(Html.fromHtml("<font color='#509324'>Sucesso</font>"));
+                                                    builder.setMessage("Você se cadastrou!");
+                                                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            dialog.dismiss();
+                                                            Intent intent;
+                                                            intent = new Intent(registro.this, main_menu.class);
+                                                            intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
+                                                            startActivity(intent);
+                                                        }
+                                                    });
+                                                    builder.show();
+
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    error_msg = e.getMessage();
+                                                    progressDialog.dismiss();
+                                                    AlertDialog.Builder builder = new AlertDialog.Builder(registro.this);
+                                                    builder.setCancelable(false);
+                                                    builder.setTitle(Html.fromHtml("<font color='#cc0000'>Falha</font>"));
+                                                    builder.setMessage(e.getMessage());
+                                                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(DialogInterface dialog, int which) {
+                                                            dialog.dismiss();
+                                                        }
+                                                    });
+                                                    builder.show();
+                                                }
+                                            });
+
+                                }
+                            });
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            error_msg = e.getMessage();
+                            progressDialog.dismiss();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(registro.this);
+                            builder.setCancelable(false);
+                            builder.setTitle(Html.fromHtml("<font color='#cc0000'>Falha</font>"));
+                            builder.setMessage(e.getMessage());
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            builder.show();
+                        }
+                    });
+            return null;
+        }
     }
 
     public void iniciar_act_messagens(boolean x){

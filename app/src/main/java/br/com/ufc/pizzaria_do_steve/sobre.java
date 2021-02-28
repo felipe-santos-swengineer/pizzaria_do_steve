@@ -1,24 +1,34 @@
 package br.com.ufc.pizzaria_do_steve;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.TextView;
-
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.xwray.groupie.GroupAdapter;
 import com.xwray.groupie.Item;
 import com.xwray.groupie.OnItemClickListener;
 import com.xwray.groupie.ViewHolder;
 
+import java.util.ArrayList;
+
 public class sobre extends AppCompatActivity {
 
     GroupAdapter adapter;
     RecyclerView rv_info;
+    ListaInfo listaInfo;
+    ArrayList<Info> infos;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,19 +41,8 @@ public class sobre extends AppCompatActivity {
         rv_info.setAdapter(adapter);
         rv_info.setLayoutManager(new LinearLayoutManager(this));
 
-        Info estabelecimento = new Info("Pizzaria do Steve","Inaugurada em 2021, oferecemos diversos tipos de pizzas para delivery");
-        Info funcionamento = new Info("Funcionamento", "Segunda a domingo (Exceto feriados nacionais)");
-        Info horario = new Info("Horário","18:00 às 23:00");
-        Info entrega = new Info("Entrega", "Bairro 1, Bairro 2, Bairro 3 e Bairro 4");
-        Info email = new Info("Email", "pzsteveoficial@gmail.com");
-        Info contato = new Info("Contato","(88) 99837-8028");
-        adapter.add(new InfoItem(estabelecimento));
-        adapter.add(new InfoItem(funcionamento));
-        adapter.add(new InfoItem(horario));
-        adapter.add(new InfoItem(entrega));
-        adapter.add(new InfoItem(email));
-        adapter.add(new InfoItem(contato));
-
+        String doing = "Getting Pizzaria Info";
+        new GetInfosInFirebase().execute(doing);
 
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -55,7 +54,42 @@ public class sobre extends AppCompatActivity {
 
     }
 
+    public class GetInfosInFirebase extends AsyncTask<String, String, String>{
 
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = progressDialog.show(sobre.this, "Aguarde",
+                    "Carregando informações...", true, false);
+
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            FirebaseFirestore.getInstance().collection("/pz_info")
+                    .document("infos")
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if(documentSnapshot.exists()){
+                                listaInfo = documentSnapshot.toObject(ListaInfo.class);
+                                infos = listaInfo.getInfos();
+                                for(int i = 0; i < infos.size(); i = i + 1){
+                                    adapter.add(new InfoItem(infos.get(i)));
+                                }
+                            }
+                        }
+                    });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            progressDialog.dismiss();
+        }
+    }
 
     private class InfoItem extends Item<ViewHolder> {
 

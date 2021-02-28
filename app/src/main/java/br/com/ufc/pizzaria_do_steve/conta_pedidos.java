@@ -1,21 +1,21 @@
 package br.com.ufc.pizzaria_do_steve;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
-
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.squareup.picasso.Picasso;
 import com.xwray.groupie.GroupAdapter;
 import com.xwray.groupie.Item;
 import com.xwray.groupie.ViewHolder;
@@ -24,6 +24,7 @@ public class conta_pedidos extends AppCompatActivity {
 
     GroupAdapter adapter;
     RecyclerView rv_historico;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,21 +37,47 @@ public class conta_pedidos extends AppCompatActivity {
         rv_historico.setAdapter(adapter);
         rv_historico.setLayoutManager(new LinearLayoutManager(this));
 
-        String uid = FirebaseAuth.getInstance().getUid();
-        FirebaseFirestore.getInstance().collection("historico")
-                .document(uid)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if(documentSnapshot.exists()){
-                            Historico historico = documentSnapshot.toObject(Historico.class);
-                            for(int i = 0; i < historico.pedidos.size(); i = i + 1){
-                                adapter.add(new PedidoItem(historico.pedidos.get(i),Integer.toString(i)));
+        String doing = "Getting Pedidos and setting to adapter";
+        new GetPedidosInFirebase().execute(doing);
+
+
+    }
+
+    public class GetPedidosInFirebase extends AsyncTask<String, String, String>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = progressDialog.show(conta_pedidos.this, "Aguarde",
+                    "Carregando pedidos...", true, false);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String uid = FirebaseAuth.getInstance().getUid();
+
+            FirebaseFirestore.getInstance().collection("historico")
+                    .document(uid)
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if(documentSnapshot.exists()){
+                                Historico historico = documentSnapshot.toObject(Historico.class);
+                                for(int i = 0; i < historico.pedidos.size(); i = i + 1){
+                                    adapter.add(new PedidoItem(historico.pedidos.get(i),Integer.toString(i)));
+                                }
                             }
                         }
-                    }
-                });
+                    });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            progressDialog.dismiss();
+        }
     }
 
     private class PedidoItem extends Item<ViewHolder> {

@@ -1,2 +1,5 @@
+include ':additionnal'
+include ':activation'
+include ':mail'
 include ':app'
 rootProject.name = "pizzaria_do_steve"

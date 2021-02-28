@@ -1,20 +1,16 @@
 package br.com.ufc.pizzaria_do_steve;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import android.app.ActionBar;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
+import android.os.SystemClock;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -23,16 +19,15 @@ import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.squareup.picasso.Picasso;
 import com.xwray.groupie.GroupAdapter;
 import com.xwray.groupie.Item;
@@ -40,13 +35,15 @@ import com.xwray.groupie.OnItemClickListener;
 import com.xwray.groupie.ViewHolder;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class main_menu extends AppCompatActivity {
 
     GroupAdapter adapter;
     RecyclerView produtos;
-
+    private long mLastClickTime = 0;
+    ProgressDialog progressDialog;
+    ArrayList<Produto> cardapio;
+    ListaProdutos listaProdutos;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,31 +57,8 @@ public class main_menu extends AppCompatActivity {
         produtos.setAdapter(adapter);
         produtos.setLayoutManager(new LinearLayoutManager(this));
 
-        Produto pizza_mista = new Produto("pizza_mista","Mista","Orégano, azeitona, mussarela, catupiry, milho, tomate e presunto",
-                3, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Fmista.jpg?alt=media&token=c6b21498-7538-47f5-b5d2-43d7a3f3ab03",0);
-        adapter.add(new ProdutoItem(pizza_mista));
-        Produto pizza_francatur = new Produto("pizza_francatur","Francatur","Mussarela, frango, milho, catupiry e orégano",
-                3, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Ffrancatur.jpg?alt=media&token=94aacda5-c01c-467a-8c87-b5a9a0800ac8",0);
-        adapter.add(new ProdutoItem(pizza_francatur));
-        Produto pizza_camarao = new Produto("pizza_camarao","Camarão","Orégano, mussarela,  milho, tomate e camarão",
-                4, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Fcamarao.jpg?alt=media&token=510ab513-ee8b-46f4-ab0f-e5bccbc92d66",0);
-        adapter.add(new ProdutoItem(pizza_camarao));
-        Produto pizza_calabresa = new Produto("pizza_calabresa","Calabresa","Orégano, azeitona, mussarela, calabresa e cebola",
-                3, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Fcalabresa.jpg?alt=media&token=e7e31551-2aa5-42cb-9a3c-0c6f08fb6dd8",0);
-        adapter.add(new ProdutoItem(pizza_calabresa));
-        Produto pizza_doce = new Produto("pizza_doce","Doce","Mussarela e chocolate",
-                4, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Fdoce.jpg?alt=media&token=82fc1b3b-931e-4a76-ac5e-357196111d36",0);
-        adapter.add(new ProdutoItem(pizza_doce));
-        Produto refri_coca2l = new Produto("refri_coca2l","Coca-Cola","Refrigerante de 2L",
-                10, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Fcoca2l.jpg?alt=media&token=554a22d4-df32-463d-aa6f-140f70edcfc3",0);
-        adapter.add(new ProdutoItem(refri_coca2l));
-        Produto refri_fanta2l = new Produto("refri_fanta2l","Fanta","Refrigerante de 2L",
-                6, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Ffanta2l.jpg?alt=media&token=93ba4e23-dd7b-462b-a3dc-4ef8a3524b08",0);
-        adapter.add(new ProdutoItem(refri_fanta2l));
-        Produto refri_cajuina2l = new Produto("refri_cajuina2l","Cajuina","Refrigerante de 2L",
-                6, "https://firebasestorage.googleapis.com/v0/b/pizzaria-steve.appspot.com/o/images%2Fproduct%2Fcajuina2l.jpg?alt=media&token=76a4d4b0-6c16-4658-b32b-33be83f8fe06",0);
-        adapter.add(new ProdutoItem(refri_cajuina2l));
-
+        String doing = "Getting Main Menu and setting to adapter";
+        new GetCardapioInFirebase().execute(doing);
 
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
@@ -127,7 +101,8 @@ public class main_menu extends AppCompatActivity {
                                     else if(quantidade >= 1) {
                                         toast("Adicionou " + quant_string + " " + produtoItem.produto.getName() + " ao carrinho");
                                         popupWindow.dismiss();
-                                        updateCarrinhoInFirebase(produtoItem.produto, quantidade);
+                                        produtoItem.produto.setQuantidade(quantidade);
+                                        new UpdateCarrinhoInFirebase().execute(produtoItem.produto);
                                     }
 
                                 }
@@ -147,6 +122,43 @@ public class main_menu extends AppCompatActivity {
             }
         });
     }
+
+    public class GetCardapioInFirebase extends AsyncTask<String, String, String>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = progressDialog.show(main_menu.this, "Aguarde",
+                    "Carregando cardapio...", true, false);
+        }
+
+        @Override
+        protected String doInBackground(String... strings) {
+            FirebaseFirestore.getInstance().collection("/cardapio")
+                    .document("itens")
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if(documentSnapshot.exists()){
+                                listaProdutos = documentSnapshot.toObject(ListaProdutos.class);
+                                cardapio = listaProdutos.getCardapio();
+                                for(int i = 0; i < cardapio.size(); i = i + 1) {
+                                    adapter.add(new ProdutoItem(cardapio.get(i)));
+                                }
+                            }
+                        }
+                    });
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            progressDialog.dismiss();
+        }
+    }
+
 
     public void toast(String e){
         Toast.makeText(this, e,Toast.LENGTH_SHORT).show();
@@ -205,6 +217,10 @@ public class main_menu extends AppCompatActivity {
     }
 
     public void OnClickBtnCarrinho(View v) {
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+            return;
+        }
+        mLastClickTime = SystemClock.elapsedRealtime();
         Intent intent;
         intent = new Intent(this, carrinho.class);
         intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
@@ -213,6 +229,10 @@ public class main_menu extends AppCompatActivity {
     }
 
     public void OnClickBtnConta(View v) {
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+            return;
+        }
+        mLastClickTime = SystemClock.elapsedRealtime();
         Intent intent;
         intent = new Intent(this, conta.class);
         intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
@@ -220,52 +240,81 @@ public class main_menu extends AppCompatActivity {
         overridePendingTransition(0,0);
     }
 
-    public void updateCarrinhoInFirebase(Produto produto, float quantidade) {
 
-        String uid = FirebaseAuth.getInstance().getUid();
-        //adicionando quantidade do produto selecionado
-        produto.setQuantidade(quantidade);
-        //lista de produtos do carrinho
-        ArrayList<Produto> produtos = new ArrayList<>();
-        produtos.add(produto);
-        //save or update carrinho in firebase
-        Pedido carrinho = new Pedido(uid, produtos);
+    public class UpdateCarrinhoInFirebase extends AsyncTask<Produto, String, String> {
 
-        FirebaseFirestore.getInstance().collection("carrinho")
-                .document(uid)
-                .get()
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if (documentSnapshot.exists()) {
-                            //get copy and update
-                            Pedido existent_carrinho = documentSnapshot.toObject(Pedido.class);
-                            //verificar se produto ja existe
-                            boolean added = false;
-                            for(int i = 0; i < existent_carrinho.getProdutos().size(); i = i + 1){
-                                if(existent_carrinho.getProdutos().get(i).getName().equals(produto.getName())){
-                                    existent_carrinho.getProdutos().get(i).setQuantidade(existent_carrinho.getProdutos().get(i).getQuantidade() + quantidade);
-                                    added = true;
-                                    break;
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = progressDialog.show(main_menu.this, "Aguarde",
+                    "confirmando pedido...", true, false);
+        }
+
+        @Override
+        protected String doInBackground(Produto... produtos) {
+            String uid = FirebaseAuth.getInstance().getUid();
+            //adicionando quantidade do produto selecionado
+            //lista de produtos do carrinho
+            ArrayList<Produto> produtos_ = new ArrayList<>();
+            produtos_.add(produtos[0]);
+            //save or update carrinho in firebase
+            Pedido carrinho = new Pedido(uid, produtos_);
+
+            FirebaseFirestore.getInstance().collection("carrinho")
+                    .document(uid)
+                    .get()
+                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                        @Override
+                        public void onSuccess(DocumentSnapshot documentSnapshot) {
+                            if (documentSnapshot.exists()) {
+                                //get copy and update
+                                Pedido existent_carrinho = documentSnapshot.toObject(Pedido.class);
+                                //verificar se produto ja existe
+                                boolean added = false;
+                                for(int i = 0; i < existent_carrinho.getProdutos().size(); i = i + 1){
+                                    if(existent_carrinho.getProdutos().get(i).getName().equals(produtos[0].getName())){
+                                        existent_carrinho.getProdutos().get(i).setQuantidade(existent_carrinho.getProdutos().get(i).getQuantidade() + produtos[0].getQuantidade());
+                                        added = true;
+                                        break;
+                                    }
                                 }
-                            }
-                            //se não existe
-                            if(added == false) {
-                                existent_carrinho.getProdutos().add(produto);
-                            }
+                                //se não existe
+                                if(added == false) {
+                                    existent_carrinho.getProdutos().add(produtos[0]);
+                                }
 
-                            existent_carrinho.atualizarValor();
-                            //update in firebase
-                            FirebaseFirestore.getInstance().collection("carrinho")
-                                    .document(uid)
-                                    .set(existent_carrinho);
+                                existent_carrinho.atualizarValor();
+                                //update in firebase
+                                FirebaseFirestore.getInstance().collection("carrinho")
+                                        .document(uid)
+                                        .set(existent_carrinho);
+                            }
+                            else {
+                                FirebaseFirestore.getInstance().collection("carrinho")
+                                        .document(uid)
+                                        .set(carrinho);
+                            }
                         }
-                        else {
-                            FirebaseFirestore.getInstance().collection("carrinho")
-                                    .document(uid)
-                                    .set(carrinho);
-                        }
-                    }
-                });
+                    });
+            return produtos[0].getName() + " " + produtos[0].getQuantidade() + "x ";
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+            progressDialog.dismiss();
+            AlertDialog.Builder builder = new AlertDialog.Builder(main_menu.this);
+            builder.setCancelable(false);
+            builder.setTitle(Html.fromHtml("<font color='#509324'>Sucesso</font>"));
+            builder.setMessage( s + " adicionado(s) ao carrinho!");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
+        }
+
     }
 }

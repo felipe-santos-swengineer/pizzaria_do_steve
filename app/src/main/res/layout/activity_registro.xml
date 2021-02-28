@@ -41,6 +41,7 @@
         android:ems="10"
         android:hint="Nome Completo"
         android:inputType="textPersonName"
+        android:padding="10dp"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -50,14 +51,19 @@
     <EditText
         android:id="@+id/edt_address"
         android:layout_width="0dp"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         android:background="@drawable/bg_edt_text_rounded"
         android:ems="10"
         android:hint="Endereço"
-        android:inputType="textPersonName"
+        android:inputType="textCapSentences|textMultiLine"
+        android:isScrollContainer="true"
+        android:maxLines="4"
+        android:padding="10dp"
+        android:singleLine="false"
         android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="@+id/edt_name"
+        app:layout_constraintEnd_toStartOf="@+id/img_maps"
         app:layout_constraintStart_toStartOf="@+id/edt_name"
         app:layout_constraintTop_toBottomOf="@+id/edt_name" />
 
@@ -68,10 +74,11 @@
         android:layout_marginTop="8dp"
         android:background="@drawable/bg_edt_text_rounded"
         android:ems="10"
+        android:padding="10dp"
         android:hint="Email"
         android:inputType="textEmailAddress"
         android:textAlignment="center"
-        app:layout_constraintEnd_toEndOf="@+id/edt_address"
+        app:layout_constraintEnd_toEndOf="@+id/edt_ref"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/edt_address"
         app:layout_constraintTop_toBottomOf="@+id/edt_ref" />
@@ -83,6 +90,7 @@
         android:layout_marginTop="8dp"
         android:background="@drawable/bg_edt_text_rounded"
         android:ems="10"
+        android:padding="10dp"
         android:hint="Senha"
         android:inputType="textPassword"
         android:textAlignment="center"
@@ -114,6 +122,7 @@
         android:layout_marginEnd="16dp"
         android:background="@drawable/bg_edt_text_rounded"
         android:ems="10"
+        android:padding="10dp"
         android:hint="Referência"
         android:inputType="textPersonName"
         android:textAlignment="center"
@@ -121,6 +130,17 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/edt_address" />
+
+    <ImageView
+        android:id="@+id/img_maps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:onClick="onClickImgMaps"
+        app:layout_constraintBottom_toTopOf="@+id/edt_ref"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edt_name"
+        app:srcCompat="@android:drawable/ic_dialog_map" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,17 +1,22 @@
 package br.com.ufc.pizzaria_do_steve;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.text.Html;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -27,6 +32,7 @@ public class login extends AppCompatActivity {
     private ProgressBar bar_trying_enter;
     private String error_msg;
     private long mLastClickTime = 0;
+    ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,14 +47,13 @@ public class login extends AppCompatActivity {
         text_create_acc = (TextView) findViewById(R.id.text_create_acc);
         bar_trying_enter= (ProgressBar) findViewById(R.id.bar_trying_enter);
 
-        String email = edt_email.getText().toString();
-        String password = edt_password.getText().toString();
-
-
-
     }
 
     public void OnClickBtnRegister(View v) {
+        if (SystemClock.elapsedRealtime() - mLastClickTime < 1000){
+            return;
+        }
+        mLastClickTime = SystemClock.elapsedRealtime();
         Intent intent;
         intent = new Intent(this, registro.class);
         //intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
@@ -65,42 +70,75 @@ public class login extends AppCompatActivity {
         }
         mLastClickTime = SystemClock.elapsedRealtime();
 
-        bar_trying_enter.setVisibility(View.VISIBLE);
         String email = edt_email.getText().toString();
         String password = edt_password.getText().toString();
+
         if(email.isEmpty() || email == null || password.isEmpty() || password == null) {
-            Toast.makeText(this, "Email e/ou senha invalidos ou faltantes", Toast.LENGTH_SHORT).show();
-            bar_trying_enter.setVisibility(View.INVISIBLE);
+            AlertDialog.Builder builder = new AlertDialog.Builder(login.this);
+            builder.setCancelable(false);
+            builder.setTitle(Html.fromHtml("<font color='#cc0000'>Falha</font>"));
+            builder.setMessage("Email e/ou senha invalidos e/ou vazios");
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
             return;
         }
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
-                    @Override
-                    public void onSuccess(AuthResult authResult) {
-                        iniciar_act_messagens(true);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        error_msg = e.getMessage();
-                        iniciar_act_messagens(false);
-                    }
-                });
+
+        String doing = "Verificando se o login é possivel";
+        new LoginVerify().execute(doing);
 
     }
 
-    public void iniciar_act_messagens(boolean decisao){
-        bar_trying_enter.setVisibility(View.GONE);
-        if(decisao == false){
-            Toast.makeText(this, error_msg, Toast.LENGTH_SHORT).show();
-            return;
+    public class LoginVerify extends AsyncTask<String, String, String> {
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            progressDialog = progressDialog.show(login.this, "Aguarde",
+                    "Autentificando...", true, false);
         }
-        Intent intent;
-        intent = new Intent(this, main_menu.class);
-        intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        overridePendingTransition(0, 0);
+
+        @Override
+        protected String doInBackground(String... strings) {
+            String email = edt_email.getText().toString();
+            String password = edt_password.getText().toString();
+            Log.d("teste","entrei no asynctask");
+
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
+                    .addOnSuccessListener(new OnSuccessListener<AuthResult>() {
+                        @Override
+                        public void onSuccess(AuthResult authResult) {
+                            progressDialog.dismiss();
+                            Intent intent;
+                            intent = new Intent(login.this, main_menu.class);
+                            intent.setFlags(intent.FLAG_ACTIVITY_CLEAR_TASK | intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            overridePendingTransition(0, 0);
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            AlertDialog.Builder builder = new AlertDialog.Builder(login.this);
+                            builder.setCancelable(false);
+                            builder.setTitle(Html.fromHtml("<font color='#cc0000'>Falha</font>"));
+                            builder.setMessage(e.getMessage());
+                            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            });
+                            builder.show();
+                        }
+                    });
+            return null;
+        }
     }
 
 }
